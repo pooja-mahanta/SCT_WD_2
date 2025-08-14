@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF‑8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartWatch Stopwatch</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, #0b0b1e 0%, #000 100%);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .watch {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle at 50% 50%, #1a1a2e, #09091a);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0,255,204,0.6), inset 0 0 30px rgba(0,255,204,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .digital-display {
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 10px #00ffcc;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .controls button {
+      background: #00ffcc;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #000;
+      transition: 0.3s;
+      box-shadow: 0 0 8px rgba(0,255,204,0.8);
+    }
+    .controls button:hover {
+      background: #00e6b8;
+      box-shadow: 0 0 14px rgba(0,255,204,1);
+    }
+
+    .lap-list {
+      position: absolute;
+      top: 20%;
+      width: 80%;
+      height: 35%;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+    .lap {
+      display: flex;
+      justify-content: space-between;
+      margin: 2px 0;
+      color: #00ffcc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="watch">
+  <div class="digital-display" id="display">00:00:00.000</div>
+  <div class="lap-list" id="laps"></div>
+  <div class="controls">
+    <button id="startBtn">Start</button>
+    <button id="lapBtn">Lap</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+</div>
+
+<script>
+  let startTime, elapsed = 0, timer;
+  let running = false;
+  const display = document.getElementById('display');
+  const lapsDiv = document.getElementById('laps');
+
+  function formatTime(ms) {
+    const d = new Date(ms);
+    return String(d.getUTCHours()).padStart(2,'0') + ':' +
+           String(d.getUTCMinutes()).padStart(2,'0') + ':' +
+           String(d.getUTCSeconds()).padStart(2,'0') + '.' +
+           String(d.getUTCMilliseconds()).padStart(3,'0');
+  }
+
+  function update() {
+    const now = Date.now();
+    display.textContent = formatTime(now - startTime + elapsed);
+  }
+
+  function startStop() {
+    if (!running) {
+      startTime = Date.now();
+      timer = setInterval(update, 10);
+      running = true;
+      startBtn.textContent = 'Pause';
+    } else {
+      elapsed += Date.now() - startTime;
+      clearInterval(timer);
+      running = false;
+      startBtn.textContent = 'Start';
+    }
+  }
+
+  function resetAll() {
+    clearInterval(timer);
+    running = false;
+    elapsed = 0;
+    display.textContent = '00:00:00.000';
+    startBtn.textContent = 'Start';
+    lapsDiv.innerHTML = '';
+  }
+
+  function recordLap() {
+    if (!running) return;
+    const now = Date.now() - startTime + elapsed;
+    const lap = document.createElement('div');
+    lap.className = 'lap';
+    lap.innerHTML = `<span>Lap ${lapsDiv.children.length + 1}</span><span>${formatTime(now)}</span>`;
+    lapsDiv.prepend(lap);
+    // short tone
+    new Audio('https://www.soundjay.com/button/beep-07.wav').play();
+  }
+
+  document.getElementById('startBtn').onclick = startStop;
+  document.getElementById('resetBtn').onclick = resetAll;
+  document.getElementById('lapBtn').onclick = recordLap;
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'KeyS') startStop();
+    if (e.code === 'KeyL') recordLap();
+  });
+</script>
+
+</body>
+</html>
